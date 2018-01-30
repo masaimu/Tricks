@@ -77,7 +77,7 @@ public class _TreeMapTest<K,V> {
             }
             p.parent = p.left = p.right = null;
 
-            if(p.Color == BLACK){
+            if(p.color == BLACK){
                 fixAfterDeletion(replacement);
             }
         }else if(p.parent == null){
@@ -90,7 +90,7 @@ public class _TreeMapTest<K,V> {
             没有左右子树的节点在此处理，如果是左右子树都健全的节点，
             由于p已经指到了后继节点上，因此也是属于没有左右子树的情况
              */
-            if(p.Color == BLACK){
+            if(p.color == BLACK){
                 fixAfterDeletion(p);
             }
 
@@ -120,8 +120,8 @@ public class _TreeMapTest<K,V> {
                  4.左旋后，重新设置 "兄弟结点"。
                  现在兄弟节点就变成黑色的了。
                  */
-                    sib.Color = BLACK;
-                    x.parent.Color = RED;
+                    sib.color = BLACK;
+                    x.parent.color = RED;
                     rotateLeft(x.parent);
                     sib = x.parent.right;
                 }
@@ -132,7 +132,7 @@ public class _TreeMapTest<K,V> {
                 1.将 "兄弟结点" 改为红色；
                 2.将 "父亲结点" 设置为新的 "当前结点"，继续进行操作。
                  */
-                    sib.Color = RED;
+                    sib.color = RED;
                     x = x.parent;
                 }else{
                     if(colorOf(sib.right) == BLACK){
@@ -143,8 +143,8 @@ public class _TreeMapTest<K,V> {
                     3.以 "兄弟结点" 为支点进行右旋；
                     4.右旋后，重新设置 "当前结点" 的 "兄弟结点"。
                      */
-                        sib.left.Color = BLACK;
-                        sib.Color = RED;
+                        sib.left.color = BLACK;
+                        sib.color = RED;
                         rotateRight(sib);
                         sib = x.parent.right;
                     }
@@ -156,9 +156,9 @@ public class _TreeMapTest<K,V> {
                 3.将 "兄弟结点" 的右孩子改为黑色；
                 4.以 "父亲结点" 为支点进行左旋；
                  */
-                    sib.Color = x.parent.Color;
-                    x.parent.Color = BLACK;
-                    sib.right.Color = BLACK;
+                    sib.color = x.parent.color;
+                    x.parent.color = BLACK;
+                    sib.right.color = BLACK;
                     rotateLeft(x.parent);
                     x = root;
                 }
@@ -175,8 +175,8 @@ public class _TreeMapTest<K,V> {
                 4.右旋后，重新设置 "兄弟结点"。
                 现在兄弟节点就变成黑色的了。
                 */
-                    sib.Color = BLACK;
-                    x.parent.Color = RED;
+                    sib.color = BLACK;
+                    x.parent.color = RED;
                     rotateRight(x.parent);
                     sib = x.parent.left;
                 }
@@ -187,7 +187,7 @@ public class _TreeMapTest<K,V> {
                 1.将 "兄弟结点" 改为红色；
                 2.将 "父亲结点" 设置为新的 "当前结点"，继续进行操作。
                  */
-                    sib.Color = RED;
+                    sib.color = RED;
                     x = x.parent;
                 }else{
                     if(colorOf(sib.left) == BLACK){
@@ -198,8 +198,8 @@ public class _TreeMapTest<K,V> {
                     3.以 "兄弟结点" 为支点进行左旋；
                     4.左旋后，重新设置 "当前结点" 的 "兄弟结点"。
                      */
-                        sib.right.Color = BLACK;
-                        sib.Color = RED;
+                        sib.right.color = BLACK;
+                        sib.color = RED;
                         rotateLeft(sib);
                         sib = x.parent.left;
                     }
@@ -211,19 +211,97 @@ public class _TreeMapTest<K,V> {
                 3.将 "兄弟结点" 的左孩子改为黑色；
                 4.以 "父亲结点" 为支点进行右旋；
                  */
-                    sib.Color = x.parent.Color;
-                    x.parent.Color = BLACK;
-                    sib.left.Color = BLACK;
+                    sib.color = x.parent.color;
+                    x.parent.color = BLACK;
+                    sib.left.color = BLACK;
                     rotateRight(x.parent);
                     x = root;
                 }
             }
         }
-        x.Color = BLACK;
+        x.color = BLACK;
+    }
+
+    private void fixAfterInsertion(Entry<K,V> x){
+        x.color = RED;
+        while(x != null && x != root && x.parent.color == RED){
+            if(parentOf(x) == leftOf(parentOf(parentOf(x)))){
+                Entry y = rightOf(parentOf(parentOf(x)));
+                if(colorOf(y) == RED){
+                /*
+                Case 1:当前结点的父亲为红色，叔叔存在且也是红色
+                1.将 "父亲结点" 改为黑色；
+                2.将 "叔叔结点" 改为黑色；
+                3.将 "祖父结点" 改为红色；
+                4.将 "祖父结点" 设为 "当前结点"，继续进行操作。
+                 */
+                    parentOf(x).color = BLACK;
+                    y.color = BLACK;
+                    parentOf(parentOf(x)).color = RED;
+                    x = parentOf(parentOf(x));
+                }else{
+                    if(x == rightOf(parentOf(x))){
+                    /*
+                    Case 2：当前结点的父亲为红色，叔叔不存在或为黑色，且当前结点是其父亲的右孩子
+                    1.将 "父亲结点" 设为 "当前结点"；
+                    2.以 "新的当前结点" 为支点进行左旋。
+                     */
+                        x = parentOf(x);
+                        rotateLeft(x);
+                    }
+
+                /*
+                Case 3：当前结点的父亲为红色，叔叔不存在或为黑色，且当前结点是其父亲的左孩子
+                1.将 "父亲结点" 改为黑色；
+                2.将 "祖父结点" 改为红色；
+                3.以 "祖父结点" 为支点进行右旋。
+                 */
+                    parentOf(x).color = BLACK;
+                    parentOf(parentOf(x)).color = RED;
+                    rotateRight(parentOf(parentOf(x)));
+                }
+            }else{
+                Entry y = leftOf(parentOf(parentOf(x)));
+                if(colorOf(y) == RED){
+                /*
+                Case 1:当前结点的父亲为红色，叔叔存在且也是红色
+                1.将 "父亲结点" 改为黑色；
+                2.将 "叔叔结点" 改为黑色；
+                3.将 "祖父结点" 改为红色；
+                4.将 "祖父结点" 设为 "当前结点"，继续进行操作。
+                 */
+                    parentOf(x).color = BLACK;
+                    y.color = BLACK;
+                    parentOf(parentOf(x)).color = RED;
+                    x = parentOf(parentOf(x));
+                }else{
+                    if(x == leftOf(parentOf(x))){
+                    /*
+                    Case 2：当前结点的父亲为红色，叔叔不存在或为黑色，且当前结点是其父亲的左孩子
+                    1.将 "父亲结点" 设为 "当前结点"；
+                    2.以 "新的当前结点" 为支点进行右旋。
+                     */
+                        x = parentOf(x);
+                        rotateRight(x);
+                    }
+
+                /*
+                Case 3：当前结点的父亲为红色，叔叔不存在或为黑色，且当前结点是其父亲的右孩子
+                1.将 "父亲结点" 改为黑色；
+                2.将 "祖父结点" 改为红色；
+                3.以 "祖父结点" 为支点进行左旋。
+                 */
+                    parentOf(x).color = BLACK;
+                    parentOf(parentOf(x)).color = RED;
+                    rotateLeft(parentOf(parentOf(x)));
+                }
+            }
+        }
+        root.color = BLACK;
     }
 
     private boolean colorOf(Entry sib) {
-        return sib == null ? BLACK : sib.Color;
+        return sib == null ? BLACK : sib.color;
     }
 
     /**
@@ -252,16 +330,28 @@ public class _TreeMapTest<K,V> {
         }
     }
 
+    private static <K,V> Entry<K,V> parentOf(Entry<K,V> p){
+        return p == null ? null : p.parent;
+    }
+
+    private static <K,V> Entry<K,V> leftOf(Entry<K,V> p) {
+        return (p == null) ? null: p.left;
+    }
+
+    private static <K,V> Entry<K,V> rightOf(Entry<K,V> p) {
+        return (p == null) ? null: p.right;
+    }
+
 
     private static final boolean RED   = false;
     private static final boolean BLACK = true;
 
-    class Entry<K,V>{
+    static class Entry<K,V>{
         K key;
         V value;
         Entry<K,V> parent;
         Entry<K,V> left;
         Entry<K,V> right;
-        boolean Color = BLACK;
+        boolean color = BLACK;
     }
 }
