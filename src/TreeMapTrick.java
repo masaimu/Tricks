@@ -2,7 +2,7 @@
  * 这个类是从treemap中提取出红黑树的实现代码
  * 目前只包括了删除节点的代码
  */
-public class _TreeMapTest<K,V> {
+public class TreeMapTrick<K,V> {
     Entry<K,V> root;
 
     /**
