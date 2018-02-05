@@ -40,8 +40,10 @@ public class ConcurrentHashMap_Lock_Trick {
         for(int s;;){
             if(((s = lockState) & (WAITER|WRITER)) != 0){
             /*
-            说明WAITER和WRITER位都被置为1，有线程正在进行写操作
+            说明WAITER或者WRITER位被置为1，有线程正在进行写操作
             可以等待，在concurrentHahsmap中，此处开始以链表的方式进行读操作。
+            其实此处有一点巧妙设计，当有写线程在等待读操作时，此时后来的读操
+            作不再加读锁，以防止写线程产生饥饿。
              */
             }else if(U.compareAndSwapInt(this,LOCKSTATE,s,s+READER)){
                 /*
