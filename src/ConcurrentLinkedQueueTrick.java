@@ -70,16 +70,49 @@ public class ConcurrentLinkedQueueTrick<E> {
 
         for(Node<E> t = tail, p = t;;){
             Node<E> q = p.next;
-            if(q = null){
+            if(q == null){
                 if(p.casNext(null, node)){
-
+                    //此处还需要改一下tail指针的指向，因为有可能上一次添加节点的时候，tail没有做cas更新
+                    if(p!=t){
+                        casTail(t, node);
+                    }
+                    return true;
                 }
+            }else if(q == p){
+                p = (t!=(t=tail)) ? t : head;
+            }else{
+                p = (t != (t=tail)) ? t : q;
             }
         }
-
-        return false;
     }
 
+    /**
+     * 当一个节点出队列后，只是把Item置为null，然后查看是否需要更新head
+     * 更新的条件也比较简单：当出队节点是head指向节点的下一个节点时，说明此时已经有两个节点出队了，
+     * 所以要更新head指向了。更新head指向的时候，要把前一个节点（也就是刚刚出队的节点）的next指向它自己，
+     * 这样才能让其他线程知道此节点已经出队了。
+     * @return
+     */
+    public E poll(){
+        return null;
+    }
 
+    private boolean casTail(Node<E> t, Node<E> node) {
+        return UNSAFE.compareAndSwapObject(this, tailOffset, t, node);
+    }
+
+    private static final sun.misc.Unsafe UNSAFE;
+    private static final long tailOffset;
+    static{
+        try {
+            Constructor con = Unsafe.class.getDeclaredConstructor();
+            con.setAccessible(true);
+            UNSAFE = (Unsafe) con.newInstance(null);
+            Class k = ConcurrentLinkedQueueTrick.class;
+            tailOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("tail"));
+        }catch(Exception e){
+            throw new Error(e);
+        }
+    }
 
 }
