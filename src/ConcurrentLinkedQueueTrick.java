@@ -30,6 +30,10 @@ public class ConcurrentLinkedQueueTrick<E> {
             return UNSAFE.compareAndSwapObject(this,nextOffset, oldNext, n);
         }
 
+        public void lazyNext(Node<E> h) {
+            UNSAFE.putOrderedObject(this, nextOffset,h);
+        }
+
         private static final sun.misc.Unsafe UNSAFE;
         private static final long itemOffset;
         private static final long nextOffset;
@@ -45,6 +49,8 @@ public class ConcurrentLinkedQueueTrick<E> {
                 throw new Error(e);
             }
         }
+
+
     }
 
     private Node<E> head;
@@ -94,7 +100,42 @@ public class ConcurrentLinkedQueueTrick<E> {
      * @return
      */
     public E poll(){
-        return null;
+        restartFromHead:
+        for(;;){
+            for(Node<E> h = head, p = h, q;;){
+                E item = p.item;
+                if(item != null && p.casItem(item, null)){
+                    if(p != h){
+                        updateHead(h, ((q = p.next)!=null ? q : p));
+                    }
+                    return item;
+                }else if((q = p.next) == null){
+                    /*
+                    在上面的casItem失败的时候会到这儿，此时如果队列中只有一个节点，则这个节点的item已经被别的线程
+                    拿走了，但是拿走的线程不会修改head指针。需要这个失败的线程来更新head指针。
+                     */
+                    updateHead(h, p);
+                    return null;
+                }else if(q == p){
+                    /*
+                    p指向的节点已经从队列中被剥离了，只能从head指向的队列头重新开始。
+                     */
+                    continue restartFromHead;
+                }else{
+                    p = q;
+                }
+            }
+        }
+    }
+
+    private void updateHead(Node<E> h, Node<E> p) {
+        if(h != p && casHead(h, p)){
+            h.lazyNext(h);
+        }
+    }
+
+    private boolean casHead(Node<E> h, Node<E> p) {
+        return UNSAFE.compareAndSwapObject(this, headOffset, h, p);
     }
 
     private boolean casTail(Node<E> t, Node<E> node) {
@@ -103,6 +144,7 @@ public class ConcurrentLinkedQueueTrick<E> {
 
     private static final sun.misc.Unsafe UNSAFE;
     private static final long tailOffset;
+    private static final long headOffset;
     static{
         try {
             Constructor con = Unsafe.class.getDeclaredConstructor();
@@ -110,6 +152,7 @@ public class ConcurrentLinkedQueueTrick<E> {
             UNSAFE = (Unsafe) con.newInstance(null);
             Class k = ConcurrentLinkedQueueTrick.class;
             tailOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("tail"));
+            headOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("head"));
         }catch(Exception e){
             throw new Error(e);
         }
