@@ -43,8 +43,8 @@ public class ConcurrentLinkedQueueTrick<E> {
                 con.setAccessible(true);
                 UNSAFE = (Unsafe) con.newInstance(null);
                 Class k = Node.class;
-                itemOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("itemOffset"));
-                nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("nextOffset"));
+                itemOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("item"));
+                nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("next"));
             } catch (Exception e) {
                 throw new Error(e);
             }
@@ -69,10 +69,11 @@ public class ConcurrentLinkedQueueTrick<E> {
      * 3、如果p没有指向尾节点，并且所指节点也没有出队列，就看看尾节点有没有发生过变化(t!=(t=tail))，
      *    如果有变化，就将p指向tail节点，否则就让p=q，往后走一步。
      * @param item
-     * @return
+     * @return 因为这个队列是unbounded，所以只会返回true
      */
     public boolean offer(E item){
-        Node<E> node = new Node(item);
+        checkNotNull(item);
+        Node<E> node = new Node<E>(item);
 
         for(Node<E> t = tail, p = t;;){
             Node<E> q = p.next;
@@ -140,6 +141,12 @@ public class ConcurrentLinkedQueueTrick<E> {
 
     private boolean casTail(Node<E> t, Node<E> node) {
         return UNSAFE.compareAndSwapObject(this, tailOffset, t, node);
+    }
+
+    private static void checkNotNull(Object item) {
+        if(item == null){
+            throw new NullPointerException();
+        }
     }
 
     private static final sun.misc.Unsafe UNSAFE;
