@@ -60,11 +60,23 @@ public class ConcurrentLinkedQueueTrick<E> {
      * 2、如果指针p指向的节点已经出队了，说明tail指针可能也已经随着出队的节点失效了，
      *    那就看看tail指针有没有被其他线程进行修正，如果tail没有变化的话，就需要将p设置
      *    成head，从头再捋一遍。
-     * 3、
+     * 3、如果p没有指向尾节点，并且所指节点也没有出队列，就看看尾节点有没有发生过变化(t!=(t=tail))，
+     *    如果有变化，就将p指向tail节点，否则就让p=q，往后走一步。
      * @param item
      * @return
      */
     public boolean offer(E item){
+        Node<E> node = new Node(item);
+
+        for(Node<E> t = tail, p = t;;){
+            Node<E> q = p.next;
+            if(q = null){
+                if(p.casNext(null, node)){
+
+                }
+            }
+        }
+
         return false;
     }
 
