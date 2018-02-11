@@ -1,7 +1,5 @@
 package algorithm;
 
-import javafx.scene.shape.VLineTo;
-
 import java.util.Arrays;
 
 /**
