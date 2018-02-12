@@ -1,3 +1,5 @@
+package indi.sam.tricks;
+
 /**
  * 这个类是从treemap中提取出红黑树的实现代码
  * 目前只包括了删除节点的代码

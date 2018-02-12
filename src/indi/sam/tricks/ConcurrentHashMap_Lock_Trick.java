@@ -1,3 +1,5 @@
+package indi.sam.tricks;
+
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Constructor;

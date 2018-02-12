@@ -1,3 +1,5 @@
+package indi.sam.tricks;
+
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicInteger;
 

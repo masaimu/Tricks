@@ -1,4 +1,4 @@
-package algorithm;
+package indi.sam.algorithm;
 
 import java.util.Arrays;
 
